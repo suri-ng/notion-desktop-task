@@ -1,0 +1,15 @@
+# Local credentials and environment files
+.env
+.env.*
+!.env.example
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Test/tool caches
+.pytest_cache/
+.coverage
+htmlcov/
