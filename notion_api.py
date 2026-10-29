@@ -151,7 +151,10 @@ def _raise_api_error(status_code: int, operation: str) -> None:
     if status_code == 401:
         message = "Notion rejected the API key. Check NOTION_API_KEY in your .env file."
     elif status_code == 403:
-        message = "The integration is not permitted to perform this action. Check its Notion capabilities."
+        if operation == "check the database connection":
+            message = "The integration cannot read this database. Check its Notion capabilities and sharing access."
+        else:
+            message = "The integration is not permitted to perform this action. Check its Notion capabilities."
     elif status_code == 404:
         message = "The database or data source was not found or is not shared with this integration."
     elif status_code == 400:

@@ -1,6 +1,6 @@
 """Task entry window for the Notion desktop task utility."""
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -112,6 +112,19 @@ class AddTaskWindow(QMainWindow):
                 self.notion_client is not None
                 and self.notion_client.data_source_id is not None
             )
+
+    @Slot()
+    def show_from_hotkey(self) -> None:
+        """Show the window, bring it forward, and focus the title field."""
+        self.showNormal()
+        self.raise_()
+        self.activateWindow()
+        self.title.setFocus()
+
+    def closeEvent(self, event) -> None:
+        """Hide on close so the tray icon and hotkey remain available."""
+        self.hide()
+        event.ignore()
 
 
 def create_app(notion_client: NotionClient | None = None) -> tuple[QApplication, AddTaskWindow]:

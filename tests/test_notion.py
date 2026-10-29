@@ -54,7 +54,7 @@ def test_successful_database_access_reports_connected():
     result = client.check_connection()
 
     assert result.connected is True
-    assert result.data_source_id == "source-id"
+    assert client.data_source_id == "source-id"
     assert result.database_title == "Tasks"
     assert session.request[0].endswith("/databases/database-id")
     assert session.request[1]["Notion-Version"] == "2026-03-11"
