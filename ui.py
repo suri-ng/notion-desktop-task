@@ -104,7 +104,7 @@ class AddTaskWindow(QMainWindow):
         except (NotionSetupError, ValueError) as exc:
             self.status.setText(f"Could not add task: {exc}")
         else:
-            self.status.setText("Task added to To Do.")
+            self.status.setText(f"Task added to {self.notion_client.settings.notion_status_value}.")
             self.title.clear()
             self.content.clear()
         finally:

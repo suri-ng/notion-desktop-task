@@ -98,7 +98,10 @@ class NotionClient:
                     ]
                 },
                 "Status": {
-                    "select": {"name": "To Do"}
+                    "status": {"name": self.settings.notion_status_value}
+
+                    #if your column is not Notion's default "Status" type (To Do, In Progress, Complete), use this, and delete the line above (Line 101): 
+                    #"select": {"name": self.settings.notion_status_value}
                 },
             },
         }

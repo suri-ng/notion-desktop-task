@@ -16,22 +16,26 @@ class Settings:
 
     notion_api_key: str
     notion_database_id: str
+    notion_status_value: str
 
 
 def load_settings() -> Settings:
     """Read required Notion settings, raising a clear error when missing."""
     api_key = os.getenv("NOTION_API_KEY", "").strip()
     database_id = os.getenv("NOTION_DATABASE_ID", "").strip()
+    status_value = os.getenv("NOTION_STATUS_VALUE", "").strip()
 
     missing = []
     if not api_key:
         missing.append("NOTION_API_KEY")
     if not database_id:
         missing.append("NOTION_DATABASE_ID")
+    if not status_value:
+        missing.append("NOTION_STATUS_VALUE")
     if missing:
         raise RuntimeError(
             "Missing required setting(s): " + ", ".join(missing)
             + ". Copy .env.example to .env and fill in the values."
         )
 
-    return Settings(notion_api_key=api_key, notion_database_id=database_id)
+    return Settings(notion_api_key=api_key, notion_database_id=database_id, notion_status_value=status_value)
