@@ -102,10 +102,8 @@ class NotionClient:
                     ]
                 },
                 "Status": {
+                    #if your column is NOT Notion's default "Status" type (To Do, In Progress, Complete), rewrite the below "status" into "select": 
                     "status": {"name": self.settings.notion_status_value}
-
-                    #if your column is NOT Notion's default "Status" type (To Do, In Progress, Complete), use this, and delete the line above (Line 101): 
-                    #"select": {"name": self.settings.notion_status_value}
                 },
             },
         }
@@ -181,6 +179,10 @@ def _raise_api_error(response: requests.Response, operation: str, api_key: str) 
     elif status_code == 404:
         message = "The database or data source was not found or is not shared with this integration."
     elif status_code == 400:
+        if detail and "status is expected to be select" in detail.lower():
+            raise NotionSetupError(
+                "Your Status column uses Select. Follow instruction in line 105 in file notion_api.py."
+            )
         message = "Notion rejected the request data. Check the database properties and task status option."
         if detail:
             message = f"{message} Notion says: {detail}"

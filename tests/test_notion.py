@@ -124,3 +124,18 @@ def test_task_validation_error_includes_notions_specific_message():
 
     assert "body.properties.Status.status should be defined" in str(exc.value)
     assert "secret-token" not in str(exc.value)
+
+
+def test_select_status_error_has_short_actionable_message():
+    client, _ = make_client(FakeResponse(400, {
+        "code": "validation_error",
+        "message": "Status is expected to be select.",
+    }))
+    client.data_source_id = "source-id"
+
+    with pytest.raises(NotionSetupError) as exc:
+        client.create_task("New task")
+
+    assert str(exc.value) == (
+        "Your Status column uses Select. Change `status` to `select` in notion_api.py."
+    )
