@@ -18,13 +18,10 @@ python -m pip install -r requirements.txt
 
 Create a Notion integration and copy its API key. Then share your task database with that integration so it can access the database.
 
-This version expects the database to have:
-
-- A title column named `Name`.
-- A status column named `Status` with the type **Status**.
+This version expects the database to have a status column named `Status` with the type **Status**. If the column is not type "Status", follow instruction in line 105 in notion_api.py
 - A status option whose name matches the value you configure below, such as `To Do`.
 
-Copy the example settings file and open your personal copy:
+Copy the example settings file and open your personal copy. Don't write your API key or ID in `.env.example`.
 
 ```powershell
 Copy-Item .env.example .env
@@ -36,10 +33,10 @@ Fill in the three values:
 ```dotenv
 NOTION_API_KEY=your-integration-secret
 NOTION_DATABASE_ID=your-database-id
-NOTION_STATUS_VALUE=To Do
+NOTION_STATUS_VALUE=your column's name in Notion (e.g. To Do)
 ```
 
-`NOTION_STATUS_VALUE` must match an existing option in the database's `Status` column. The `.env` file is for your local settings and is excluded from Git; `.env.example` is safe to commit because it contains blank placeholders.
+`NOTION_STATUS_VALUE` must match an existing option in the database's column. The `.env` file is for your local settings and is excluded from Git; `.env.example` is safe to commit because it contains blank placeholders.
 
 ## Use the popup
 
