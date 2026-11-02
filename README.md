@@ -18,7 +18,8 @@ python -m pip install -r requirements.txt
 
 Create a Notion integration and copy its API key. Then share your task database with that integration so it can access the database.
 
-This version expects the database to have a status column named `Status` with the type **Status**. If the column is not type "Status", follow instruction in line 105 in notion_api.py
+This version expects the database to have 
+- A status column named `Status` with the type **Status**. If the column is not type "Status", follow instruction in line 105 in notion_api.py
 - A status option whose name matches the value you configure below, such as `To Do`.
 
 Copy the example settings file and open your personal copy. Don't write your API key or ID in `.env.example`.
