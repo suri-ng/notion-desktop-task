@@ -1,6 +1,6 @@
 """Task entry window for the Notion desktop task utility."""
 
-from PySide6.QtCore import Qt, Slot
+from PySide6.QtCore import Qt, Signal, Slot
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -15,6 +15,23 @@ from PySide6.QtWidgets import (
 
 from config import load_settings
 from notion_api import NotionClient, NotionSetupError
+
+
+class TaskNotesEdit(QPlainTextEdit):
+    """Multiline task notes editor that submits on Enter."""
+
+    submit_requested = Signal()
+
+    def keyPressEvent(self, event) -> None:
+        if (
+            event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter)
+            and not event.modifiers() & Qt.KeyboardModifier.ShiftModifier
+        ):
+            self.submit_requested.emit()
+            event.accept()
+            return
+
+        super().keyPressEvent(event)
 
 
 class AddTaskWindow(QMainWindow):
@@ -33,12 +50,16 @@ class AddTaskWindow(QMainWindow):
         self.title = QLineEdit()
         self.title.setPlaceholderText("Task title")
 
-        self.content = QPlainTextEdit()
+        self.content = TaskNotesEdit()
         self.content.setPlaceholderText("Optional content...")
+        self.content.setTabChangesFocus(True)
+        self.content.submit_requested.connect(self.add_task)
 
         self.add_button = QPushButton("Add task")
+        self.add_button.setDefault(True)
         self.add_button.clicked.connect(self.add_task)
         self.add_button.setEnabled(False)
+        self.title.returnPressed.connect(self.add_task)
 
         self.check_button = QPushButton("Check Notion connection")
         self.check_button.setFixedSize(150, 26)
@@ -59,6 +80,9 @@ class AddTaskWindow(QMainWindow):
         main_layout.addWidget(self.content)
         main_layout.addWidget(self.add_button)
         self.setCentralWidget(container)
+        QWidget.setTabOrder(self.check_button, self.title)
+        QWidget.setTabOrder(self.title, self.content)
+        QWidget.setTabOrder(self.content, self.add_button)
 
     def check_connection(self) -> None:
         """Load settings if needed and verify database access."""

@@ -54,7 +54,11 @@ class NotionClient:
             ) from exc
 
         if not response.ok:
-            _raise_api_error(response.status_code, operation="check the database connection")
+            _raise_api_error(
+                response,
+                operation="check the database connection",
+                api_key=self.settings.notion_api_key,
+            )
 
         try:
             data = response.json()
@@ -100,7 +104,7 @@ class NotionClient:
                 "Status": {
                     "status": {"name": self.settings.notion_status_value}
 
-                    #if your column is not Notion's default "Status" type (To Do, In Progress, Complete), use this, and delete the line above (Line 101): 
+                    #if your column is NOT Notion's default "Status" type (To Do, In Progress, Complete), use this, and delete the line above (Line 101): 
                     #"select": {"name": self.settings.notion_status_value}
                 },
             },
@@ -132,7 +136,11 @@ class NotionClient:
             raise NotionSetupError("Could not reach Notion. Check your connection and try again.") from exc
 
         if not response.ok:
-            _raise_api_error(response.status_code, operation="create the task")
+            _raise_api_error(
+                response,
+                operation="create the task",
+                api_key=self.settings.notion_api_key,
+            )
 
         try:
             return response.json()
@@ -149,8 +157,20 @@ def check_setup() -> ConnectionStatus:
     return NotionClient(settings).check_connection()
 
 
-def _raise_api_error(status_code: int, operation: str) -> None:
+def _raise_api_error(response: requests.Response, operation: str, api_key: str) -> None:
     """Raise a clear error for an unsuccessful Notion API response."""
+    status_code = response.status_code
+    try:
+        payload = response.json()
+    except ValueError:
+        payload = None
+
+    detail = payload.get("message") if isinstance(payload, dict) else None
+    if isinstance(detail, str) and api_key:
+        detail = detail.replace(api_key, "[redacted]")
+    else:
+        detail = None
+
     if status_code == 401:
         message = "Notion rejected the API key. Check NOTION_API_KEY in your .env file."
     elif status_code == 403:
@@ -162,6 +182,8 @@ def _raise_api_error(status_code: int, operation: str) -> None:
         message = "The database or data source was not found or is not shared with this integration."
     elif status_code == 400:
         message = "Notion rejected the request data. Check the database properties and task status option."
+        if detail:
+            message = f"{message} Notion says: {detail}"
     elif status_code == 429:
         message = "Notion is rate limiting requests. Wait a moment and try again."
     else:

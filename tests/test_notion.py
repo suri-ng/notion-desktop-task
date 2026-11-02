@@ -22,6 +22,7 @@ class FakeSession:
         self.response = response
         self.error = error
         self.request = None
+        self.post_request = None
 
     def get(self, url, headers, timeout):
         self.request = (url, headers, timeout)
@@ -29,10 +30,16 @@ class FakeSession:
             raise self.error
         return self.response
 
+    def post(self, url, headers, json, timeout):
+        self.post_request = (url, headers, json, timeout)
+        if self.error:
+            raise self.error
+        return self.response
+
 
 def make_client(response=None, error=None):
     session = FakeSession(response=response, error=error)
-    client = NotionClient(Settings("secret-token", "database-id"), session=session)
+    client = NotionClient(Settings("secret-token", "database-id", "To Do"), session=session)
     return client, session
 
 
@@ -89,4 +96,31 @@ def test_network_failure_does_not_expose_secret():
     with pytest.raises(NotionSetupError, match="Could not reach Notion") as exc:
         client.check_connection()
 
+    assert "secret-token" not in str(exc.value)
+
+
+def test_create_task_uses_configured_database_and_status():
+    client, session = make_client(FakeResponse(200, {"id": "page-id"}))
+    client.data_source_id = "source-id"
+
+    result = client.create_task("New task", "Task notes")
+
+    assert result == {"id": "page-id"}
+    assert session.post_request[0].endswith("/pages")
+    assert session.post_request[2]["parent"] == {"data_source_id": "source-id"}
+    assert session.post_request[2]["properties"]["Name"]["title"][0]["text"]["content"] == "New task"
+    assert session.post_request[2]["properties"]["Status"]["status"] == {"name": "To Do"}
+
+
+def test_task_validation_error_includes_notions_specific_message():
+    client, _ = make_client(FakeResponse(400, {
+        "code": "validation_error",
+        "message": "body.properties.Status.status should be defined for secret-token",
+    }))
+    client.data_source_id = "source-id"
+
+    with pytest.raises(NotionSetupError) as exc:
+        client.create_task("New task")
+
+    assert "body.properties.Status.status should be defined" in str(exc.value)
     assert "secret-token" not in str(exc.value)
